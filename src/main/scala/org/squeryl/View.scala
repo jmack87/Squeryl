@@ -16,9 +16,10 @@
 package org.squeryl
 
 import dsl.ast.ViewExpressionNode
-import dsl.{TypedExpression, QueryDsl}
+import dsl.{QueryDsl, TypedExpression}
 import internals._
 import java.sql.ResultSet
+import org.squeryl.dsl.CompositeKey
 import scala.reflect.runtime.universe._
 
 /**
@@ -129,6 +130,12 @@ class View[T: TypeTag] private [squeryl](_name: String, private[squeryl] val cla
 }
 
 sealed trait CanLookup
+
+object CanLookup {
+  implicit def compositeKey2CanLookup[T <: CompositeKey](t: T): CanLookup = CompositeKeyLookup
+
+  implicit def simpleKey2CanLookup[T](t: T)(implicit ev: T => TypedExpression[T, _]): CanLookup = new SimpleKeyLookup[T](ev)
+}
 
 private [squeryl] case object CompositeKeyLookup extends CanLookup
 

@@ -43,6 +43,19 @@ trait KeyedEntityDef[-A,K] extends OptionalKeyedEntityDef[A,K]{
   final def keyedEntityDef = Some(this)
 }
 
+object KeyedEntityDef {
+  implicit def kedForKeyedEntities[A,K](implicit ev: A <:< KeyedEntity[K], m:Manifest[A]): KeyedEntityDef[A,K] = new KeyedEntityDef[A,K] {
+    def getId(a:A) = a.id
+    def isPersisted(a:A) = a.isPersisted
+    def idPropertyName = "id"
+    override def optimisticCounterPropertyName =
+      if(classOf[Optimistic].isAssignableFrom(m.erasure))
+        Some("occVersionNumber")
+      else
+        None
+  }
+}
+
 trait OptionalKeyedEntityDef[-A,K] {
   def keyedEntityDef: Option[KeyedEntityDef[A,K]]
 }
@@ -89,7 +102,6 @@ trait KeyedEntity[K] extends PersistenceStatus {
       super.equals(z)
   }
 }
-
 
 trait PersistenceStatus {
 
